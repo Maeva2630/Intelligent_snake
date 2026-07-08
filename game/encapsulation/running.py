@@ -11,16 +11,14 @@ class Running:
         self.running = True
         self.dt = 0
 
-    def run(self):
+    def run(self, grid, foods, snakes, render):
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
         
             self.screen.fill((0,0,0))
-
-            
-        
+            self.render.render_scene(self.grid, self.foods, self.snakes)
             pygame.display.flip()
 
             self.dt = self.clock.tick(60) / 1000
