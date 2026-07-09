@@ -44,8 +44,8 @@ class Render:
             radius = size // 2
 
             glow_color = (max(0, r - 40), max(0, g - 40), max(0, b - 40))
-            pygame.draw.circle(self.screen, glow_color, (center_x, center_y), radius + 2)
-            pygame.draw.circle(self.screen, color, (center_x, center_y), radius)
+            self.draw_circle(glow_color, (center_x, center_y), radius + 2)
+            self.draw_circle(color, (center_x, center_y), radius)
 
         head = snake.get_head()
         if head:
@@ -69,11 +69,11 @@ class Render:
             eye1 = (cx + mult1[0] * eye_offset, cy + mult1[1] * eye_offset)
             eye2 = (cx + mult2[0] * eye_offset, cy + mult2[1] * eye_offset)
 
-            pygame.draw.circle(self.screen, (255, 255, 255), eye1, eye_radius)
-            pygame.draw.circle(self.screen, (255, 255, 255), eye2, eye_radius)
+            self.draw_circle((255, 255, 255), eye1, eye_radius)
+            self.draw_circle((255, 255, 255), eye2, eye_radius)
 
-            pygame.draw.circle(self.screen, (0, 0, 0), eye1, max(1, eye_radius // 2))
-            pygame.draw.circle(self.screen, (0, 0, 0), eye2, max(1, eye_radius // 2))
+            self.draw_circle((0, 0, 0), eye1, max(1, eye_radius // 2))
+            self.draw_circle((0, 0, 0), eye2, max(1, eye_radius // 2))
 
 
     def draw_food(self, food):
