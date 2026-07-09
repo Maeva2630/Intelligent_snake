@@ -14,11 +14,13 @@ class Render:
         pygame.draw.circle(self.screen, color, (int(x * size + size / 2), int(y * size + size / 2)), int(size / 2))
 
     def draw_grid(self, grid):
+        """Draw game grid in background"""
         for x in range(grid.width):
             for y in range(grid.height):
                 self.draw_rect(x, y, (255, 255, 255), self.tile_size)
 
     def draw_snake(self, snake):
+        """Draw a snake with oriented eyes and glowing body"""
         body = snake.get_body()
         n = len(body)
         if n == 0:
@@ -77,10 +79,13 @@ class Render:
 
 
     def draw_food(self, food):
+        """Draw a coloured circle for food"""
         self.draw_circle(food.x, food.y, food.color, 10)
 
 
     def render_scene(self, grid, foods, snakes):
+        """Draw all element for the current scene"""
+        self.screen.fill((0,0,0))
         self.draw_grid(grid)
 
         for food in foods:
@@ -88,4 +93,3 @@ class Render:
 
         for snake in snakes:
             self.draw_snake(snake)
-

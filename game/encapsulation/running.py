@@ -1,4 +1,5 @@
 import pygame
+from game.render.render import Render
 
 class Running:
     def __init__(self, screen_width: int, screen_height: int, tile_size: int):
@@ -10,14 +11,14 @@ class Running:
         self.clock = pygame.time.Clock()
         self.running = True
         self.dt = 0
+        self.render = Render(self.screen, self.tile_size)
 
-    def run(self, grid, foods, snakes, render):
+    def run(self, grid, foods, snakes):
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
         
-            self.screen.fill((0,0,0))
             self.render.render_scene(self.grid, self.foods, self.snakes)
             pygame.display.flip()
 
