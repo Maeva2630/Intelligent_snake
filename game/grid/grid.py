@@ -2,7 +2,10 @@
     grid of the game (cells, state, positions) """
 
 class Grid:
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int):
+        if width < 0 or height < 0:
+            raise Exception(f"Grid dimensions can't be negatives: width={width}, height={height}.")
+
         self.width = width
         self.height = height
         self.grid = [[0 for _ in range(width)] for _ in range(height)]
@@ -11,10 +14,13 @@ class Grid:
         return x % self.width, y % self.height
 
     def get(self, x: int, y: int) -> list[list[int]]:
+        if x < 0 or y < 0:
+            raise Exception(f"Grid coordinates can't be negatives: (x={x}, y={y}).")
+
         x, y = self.handle_toric(x, y)
         return self.grid[y][x]
 
-    def set(self, x: int, y: int, value: int) -> None:
+    def set(self, x: int, y: int, value: int):
         x, y = self.handle_toric(x, y)
         self.grid[y][x] = value
 
