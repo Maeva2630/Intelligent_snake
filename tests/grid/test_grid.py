@@ -5,7 +5,6 @@ Launch with: python -m pytest tests/grid/test_grid.py
 import pytest
 from game.grid.grid import Grid
 
-
 # Grids use for the tests
 @pytest.fixture
 def square_grid():

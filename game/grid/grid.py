@@ -11,9 +11,6 @@ class Grid:
         self.grid = [[0 for _ in range(width)] for _ in range(height)]
 
     def handle_toric(self, x: int, y: int) -> tuple[int, int]:
-        if x < 0 or y < 0:
-            raise Exception(f"Grid coordinates can't be negatives: (x={x}, y={y}).")
-
         return x % self.width, y % self.height
 
     def get(self, x: int, y: int) -> list[list[int]]:
@@ -24,9 +21,6 @@ class Grid:
         return self.grid[y][x]
 
     def set(self, x: int, y: int, value: int):
-        if x < 0 or y < 0:
-            raise Exception(f"Grid coordinates can't be negatives: (x={x}, y={y}).")
-
         x, y = self.handle_toric(x, y)
         self.grid[y][x] = value
 
