@@ -1,0 +1,12 @@
+
+WHITE       = (255, 255, 255)
+GRAY        = (90, 90, 90)
+LIGHT_GRAY  = (140, 140, 140)
+BLACK       = (0, 0, 0)
+BEIGE       = (242, 232, 207)
+SOFT_RED    = (188, 71, 73)
+DARK_GREEN  = (56, 102, 65)
+SOFT_GREEN  = (106, 153, 78)
+ACCENT = (167, 201, 87)
+BACKGROUND  = (12, 36, 36)
+LIGHT_GREEN = (243, 255, 198)
