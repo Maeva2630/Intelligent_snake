@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class EventType(Enum):
     QUIT = 1
     KEY_DOWN = 2
