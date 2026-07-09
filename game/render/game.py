@@ -1,8 +1,8 @@
 """ Main game engine: Pygame loop """
 
 import pygame
-from grid.grid import Grid
-from render.render import Render
+from game.grid.grid import Grid
+from game.render.render import Render
 
 class Game:
     def __init__(self, grid_width: int = 32, grid_height: int = 24,

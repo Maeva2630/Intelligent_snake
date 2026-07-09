@@ -1,8 +1,8 @@
 import pygame
 
-from parser.parser import SnakeArgs, parse_args
-from render.menu import Menu
-from render.game import Game
+from game.parser.parser import SnakeArgs, parse_args
+from game.render.menu import Menu
+from game.render.game import Game
 
 def ouroboros(args: SnakeArgs):
     running_app = True

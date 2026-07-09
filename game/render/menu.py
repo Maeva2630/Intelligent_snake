@@ -1,8 +1,8 @@
 """ Main Menu: Configure the settings before launching the game. """
 
 import pygame
-from render.button import Button
-from render.constants import ACCENT, BACKGROUND, LIGHT_GREEN, WHITE
+from game.render.button import Button
+from game.render.constants import ACCENT, BACKGROUND, LIGHT_GREEN, WHITE
 
 GRID_PRESETS = [
     ("Small", 16, 12),

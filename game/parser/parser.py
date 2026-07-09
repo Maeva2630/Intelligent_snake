@@ -2,7 +2,7 @@
 import argparse
 from dataclasses import dataclass
 
-from render.menu import MIN_AGENTS, MAX_AGENTS, MIN_FOOD_DENSITY, MAX_FOOD_DENSITY
+from game.render.menu import MIN_AGENTS, MAX_AGENTS, MIN_FOOD_DENSITY, MAX_FOOD_DENSITY
 
 _MIN_TICK_RATE = 1
 _MAX_TICK_RATE = 60

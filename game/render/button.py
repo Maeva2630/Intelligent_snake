@@ -1,6 +1,6 @@
 
 from pygame import Rect, draw, Surface
-from render.constants import WHITE
+from game.render.constants import WHITE
 
 class Button:
     def __init__(self, rect: Rect, label: str, action: str):
