@@ -29,6 +29,7 @@ def ouroboros(args: SnakeArgs):
             grid_width=config["grid_width"],
             grid_height=config["grid_height"],
             food_density=config["food_density"],
+            num_agents=config["num_agents"],
             tick_rate=tick_rate
         )
         next_screen = game.run()

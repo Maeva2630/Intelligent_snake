@@ -2,7 +2,7 @@
 
 import pygame
 from game.render.button import Button
-from game.render.constants import ACCENT, BACKGROUND, LIGHT_GREEN, WHITE
+from game.render.constants import ACCENT, BACKGROUND, LIGHT_GREEN
 
 GRID_PRESETS = [
     ("Small", 16, 12),
@@ -10,8 +10,8 @@ GRID_PRESETS = [
     ("Big", 48, 36),
 ]
 
-MIN_AGENTS = 2
-MAX_AGENTS = 42
+MIN_AGENTS = 1
+MAX_AGENTS = 4
 
 MIN_FOOD_DENSITY = 0.01
 MAX_FOOD_DENSITY = 2.00
@@ -61,7 +61,6 @@ class Menu:
         running = True
         while running:
             self.clock.tick(60)
-            mouse_pos = pygame.mouse.get_pos()
 
             # Potentiellement revoir cette implémentation avec l'encaspulation de Maëva car
             # pour l'instant c'est **MOCHE**
@@ -76,13 +75,13 @@ class Menu:
                         return None
 
                 if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    result = self._handle_click(mouse_pos)
+                    result = self._handle_click(event.pos)
                     if result == "play":
                         return self._build_config()
                     if result == "exit":
                         return None
 
-            self._render(mouse_pos)
+            self._render(pygame.mouse.get_pos())
 
         return None
 
