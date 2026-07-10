@@ -1,6 +1,6 @@
 import pygame
-from game.encaspulation.render import Render
-from game.encaspulation.event import EventType, Key, Event
+from game.encapsulation.render import Render
+from game.encapsulation.event import EventType, Key, Event
 
 EVENT_MAP = {
     pygame.QUIT: EventType.QUIT,
@@ -18,12 +18,14 @@ KEY_MAP = {
 }
 
 class Window:
-    def __init__(self, screen_width: int, screen_height: int, tile_size: int):
+    def __init__(self, screen_width: int, screen_height: int, tile_size: int = 0, caption :str = None):
         self.tile_size = tile_size
         self.screen_width = screen_width
         self.screen_height = screen_height
 
         pygame.init()
+        if caption:
+            pygame.display.set_caption(caption)
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         self.clock = pygame.time.Clock()
         self.running = True
@@ -31,6 +33,21 @@ class Window:
     def clear(self):
         """Clear screen by filling it with a black color"""
         self.screen.fill((0, 0, 0))
+
+    def get_width(self) -> int:
+        return self.screen_width
+
+    def get_height(self) -> int:
+        return self.screen_height
+
+    def resize(self, new_width: int, new_height: int, tile_size: int = None):
+        """Resize current window size"""
+        self.screen_width = new_width
+        self.screen_height = new_height
+        
+        if tile_size:
+            self.tile_size = tile_size
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
 
     def update(self):
         """Update the screen"""
@@ -42,9 +59,6 @@ class Window:
         return self.clock.tick(fps) / 1000.0
 
 
-    def get_events(self) -> list:
-        """Return pygame events"""
-        return pygame.event.get()
 
     def get_events(self) -> list[Event]:
         events = []
@@ -63,7 +77,7 @@ class Window:
                     continue
                     
             elif pg_event.type == pygame.MOUSEBUTTONDOWN:
-                if pg_event.button != pygame.event.button.LEFT:
+                if pg_event.button != 1:
                     continue
                 mouse_pos = pygame.mouse.get_pos()
                 
@@ -75,3 +89,8 @@ class Window:
         """Quit pygame"""
         self.running = False
         pygame.quit()
+
+    def get_mouse_pos(self) -> tuple[int, int]:
+        """Return the current mouse position"""
+        return pygame.mouse.get_pos()
+

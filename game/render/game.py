@@ -1,23 +1,24 @@
 """ Main game engine: Pygame loop """
 
-import pygame
+# import pygame
+from game.encapsulation.window import Window
+from game.encapsulation.event import Event, EventType, Key
 from game.grid.grid import Grid
-from game.render.render import Render
+from game.encapsulation.render import Render
 
 class Game:
-    def __init__(self, grid_width: int = 32, grid_height: int = 24,
+    def __init__(self, window: Window, grid_width: int = 32, grid_height: int = 24,
                  tile_size: int = 35, tick_rate: int = 10, food_density: float = 0.05):
-        pygame.init()
+        
+        self.window = window
+
+        window.resize(grid_width * tile_size, grid_height * tile_size, tile_size)
 
         self.tile_size = tile_size
         self.grid = Grid(grid_width, grid_height)
         self.food_density = food_density
 
-        self.screen = pygame.display.set_mode(
-            (grid_width * tile_size, grid_height * tile_size)
-        )
-        self.render = Render(self.screen, tile_size)
-        self.clock = pygame.time.Clock()
+        self.render = Render(self.window.screen, tile_size)
 
         self.running = True
         self.paused = False
@@ -30,7 +31,7 @@ class Game:
 
     def run(self) -> str:
         while self.running:
-            dt = self.clock.tick(60) / 1000 # 60 fps
+            dt = self.window.tick(60)
 
             self._handle_input()
 
@@ -50,14 +51,15 @@ class Game:
     # pour l'instant c'est **MOCHE**
     # Commentaires car c'est une idée de features et sans serpent la vitesse ne sert à rien
     # à moins que je mette un timer ? *smiley qui reflechit*
+    # Oui on peut mettre de la vitesse 
     def _handle_input(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in self.window.get_events():
+            if event.type == EventType.QUIT:
                 self.running = False
                 self._next_screen = "quit"
 
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            elif event.type == EventType.KEY_DOWN:
+                if event.key == Key.ESCAPE:
                     self.running = False
                     self._next_screen = "menu"
             # elif event.key == pygame.K_SPACE:
@@ -71,6 +73,6 @@ class Game:
         pass
 
     def _render(self):
-        self.screen.fill((0,0,0))
+        self.window.clear()
         self.render.draw_grid(self.grid)
-        pygame.display.flip()
+        self.window.update()
