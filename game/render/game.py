@@ -1,21 +1,24 @@
 """ Main game engine: Pygame loop """
 
-import pygame
-from game.grid.grid import Grid
-from game.render.hud import Hud, AgentInfo, PANEL_WIDTH, MAX_VISIBLE_AGENTS
+from game.encapsulation.window import Window
+from game.encapsulation.render import Render
+from game.encapsulation.event import EventType, Key
+from game.encapsulation.rect import Rect
+from game.render.constants import BACKGROUND
 from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_STEP
-from game.render.render import Render
+from game.render.hud import Hud, AgentInfo, PANEL_WIDTH, MAX_VISIBLE_AGENTS
+from game.grid.grid import Grid
 
 MIN_WINDOW_HEIGHT = 480
 MIN_SPEED_MULTIPLIER = 0.25
 MAX_SPEED_MULTIPLIER = 8.0
 
 class Game:
-    def __init__(self, grid_width: int = 32, grid_height: int = 24,
-                 tile_size: int = 35, tick_rate: int = 10,
-                 num_agents: int = 2, food_density: float = 0.05, fullscreen: bool = False):
-        pygame.init()
-        pygame.display.set_caption("Intelligent Snake - Game")
+    def __init__(self, window: Window, grid_width: int = 32, grid_height: int = 24,
+                 tile_size: int = 35, tick_rate: int = 10, num_agents: int = 2,
+                 food_density: float = 0.05, fullscreen: bool = False):
+
+        self.window = window
 
         self.tile_size = tile_size
         self.grid = Grid(grid_width, grid_height)
@@ -23,48 +26,31 @@ class Game:
 
         grid_pixel_width = grid_width * tile_size
         grid_pixel_height = grid_height * tile_size
+
         window_width = grid_pixel_width + PANEL_WIDTH
         window_height = max(grid_pixel_height, MIN_WINDOW_HEIGHT)
-
-        self.window_size = (window_width, window_height)
-        self.fullscreen = fullscreen
-
-        if fullscreen:
-            try:
-                self.screen = pygame.display.set_mode(
-                    self.window_size, pygame.FULLSCREEN | pygame.SCALED
-                )
-
-            except pygame.error:
-                self.fullscreen = False
-                pygame.display.quit()
-                pygame.display.init()
-                self.screen = pygame.display.set_mode(self.window_size)
-        else:
-            self.screen = pygame.display.set_mode(
-                (window_width, window_height)
-            )
-        self.render = Render(self.screen, tile_size)
-        self.hud = Hud(self.screen, panel_x=grid_pixel_width, panel_height=window_height)
-        self.clock = pygame.time.Clock()
+        self.window.resize(window_width, window_height, tile_size)
+ 
+        self.render = Render(self.window.screen, tile_size)
+        self.hud = Hud(self.render, grid_pixel_width, self.window.get_height())
 
         self.running = True
         self.paused = False
-
+ 
         self._next_screen = "quit"
-
+ 
         self.tick_rate = tick_rate
         self.speed_multiplier: float = 1.0
         self._accumulator: float = 0.0
         self.elapsed_ticks: int = 0
-
+ 
         self.agents: list[AgentInfo] = [
             AgentInfo(id=i + 1) for i in range(num_agents)
         ]
 
     def run(self) -> str:
         while self.running:
-            dt = self.clock.tick(60) / 1000 # 60 fps
+            dt = self.window.tick(60)
 
             self._handle_input()
 
@@ -80,22 +66,18 @@ class Game:
 
         return self._next_screen
 
-    # Potentiellement revoir cette implémentation avec l'encaspulation de Maëva car
-    # pour l'instant c'est **MOCHE**
-    # Commentaires car c'est une idée de features et sans serpent la vitesse ne sert à rien
-    # à moins que je mette un timer ? *smiley qui reflechit*
     def _handle_input(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        for event in self.window.get_events():
+            if event.type == EventType.QUIT:
                 self.running = False
                 self._next_screen = "quit"
 
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            elif event.type == EventType.KEY_DOWN:
+                if event.key == Key.ESCAPE:
                     self.running = False
                     self._next_screen = "menu"
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                action = self.hud.handle_click(event.pos)
+            elif event.type == EventType.MOUSE_CLICK:
+                action = self.hud.handle_click(event.mouse_pos)
                 self._handle_hud_action(action)
 
     def _handle_hud_action(self, action: str | None):
@@ -127,24 +109,15 @@ class Game:
             self._next_screen = "menu"
 
     def _toggle_fullscreen(self):
-        self.fullscreen = not self.fullscreen
+        self.window.toggle_fullscreen()
+        self.render.screen = self.window.screen
 
-        if self.fullscreen:
-            try:
-                self.screen = pygame.display.set_mode(
-                    self.window_size, pygame.FULLSCREEN | pygame.SCALED
-                )
+        panel_x = self.grid.width * self.tile_size
 
-            except pygame.error:
-                self.fullscreen = False
-                pygame.display.quit()
-                pygame.display.init()
-                self.screen = pygame.display.set_mode(self.window_size)
-        else:
-            self.screen = pygame.display.set_mode(self.window_size)
-
-        self.render.screen = self.screen
-        self.hud.screen = self.screen
+        self.hud.resize(
+            panel_x,
+            self.window.get_height(),
+        )
 
     def _update(self):
         self.elapsed_ticks += 1
@@ -152,13 +125,15 @@ class Game:
             agent.play_time_ticks += 1
 
     def _render(self):
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = self.window.get_mouse_pos()
 
-        self.screen.fill((0, 0, 0))
+        self.window.clear()
+        bg_rect = Rect(0, 0, self.window.get_width(), self.window.get_height())
+        self.render.draw_rect(bg_rect, BACKGROUND)
         self.render.draw_grid(self.grid)
-        self.hud.render(
+        self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
-            self.agents, self.food_density, self.paused, self.fullscreen, mouse_pos,
+            self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
         )
 
-        pygame.display.flip()
+        self.window.update()

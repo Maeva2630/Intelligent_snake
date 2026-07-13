@@ -1,6 +1,9 @@
 """ Main Menu: Configure the settings before launching the game. """
 
-import pygame
+from game.encapsulation.rect import Rect
+from game.encapsulation.event import EventType, Key
+from game.encapsulation.window import Window
+from game.encapsulation.render import Render
 from game.render.button import Button
 from game.render.constants import ACCENT, BACKGROUND, LIGHT_GREEN
 
@@ -18,79 +21,75 @@ MAX_FOOD_DENSITY = 2.00
 FOOD_DENSITY_STEP = 0.01
 
 class Menu:
-    def __init__(self, window_width: int = 640, window_height: int = 480):
-        pygame.init()
+    def __init__(self, window: Window, screen_width: int = 640, screen_height: int = 480):
 
-        self.screen = pygame.display.set_mode((window_width, window_height))
-        pygame.display.set_caption("Intelligent Snake - Menu")
-        self.clock = pygame.time.Clock()
+        self.window = window
+        self.window.resize(screen_width, screen_height)
 
-        self.window_size = (window_width, window_height)
-        self.fullscreen = False
+        self.render = Render(self.window.screen, tile_size=0)
 
-        self.font_title = pygame.font.SysFont(None, 48)
-        self.font = pygame.font.SysFont(None, 30)
-        self.font_small = pygame.font.SysFont(None, 22)
+        self.logo = self.render.load_image("assets/logo/Ouroboros.png", (48, 48))
+
+        self.font_title = 48
+        self.font = 30
+        self.font_small = 22
 
         self.num_agents = MIN_AGENTS
         self.grid_preset_index = 0
 
         self.state = "main"
         self.food_density = 0.05
+        self.fullscreen = self.window.fullscreen
 
         self._build_main_buttons()
         self._build_settings_buttons()
 
     def _build_main_buttons(self):
-        w = self.screen.get_width()
+        w = self.window.get_width()
         self.main_buttons = [
-            Button(pygame.Rect(w // 2 - 100, 300, 200, 40), "Start", "play"),
-            Button(pygame.Rect(w // 2 - 100, 350, 200, 40), "Settings", "settings"),
-            Button(pygame.Rect(w // 2 - 100, 400, 200, 40), "Exit", "exit"),
+            Button(Rect(w // 2 - 100, 300, 200, 40), "Start", "play"),
+            Button(Rect(w // 2 - 100, 350, 200, 40), "Settings", "settings"),
+            Button(Rect(w // 2 - 100, 400, 200, 40), "Exit", "exit"),
         ]
 
     def _build_settings_buttons(self):
-        w = self.screen.get_width()
+        w = self.window.get_width()
         self.settings_buttons = [
-            Button(pygame.Rect(w // 2 - 40, 150, 40, 36), "-", "agents_minus"),
-            Button(pygame.Rect(w // 2 + 20, 150, 40, 36), "+", "agents_plus"),
-            Button(pygame.Rect(w // 2 - 40, 240, 40, 36), "-", "food_minus"),
-            Button(pygame.Rect(w // 2 + 20, 240, 40, 36), "+", "food_plus"),
-            Button(pygame.Rect(w // 2 - 50, 330, 120, 36), "Next size", "grid_size"),
-            Button(pygame.Rect(w // 2 - 100, 400, 200, 40), "Back", "return_back"),
-            Button(pygame.Rect(w - 90, 15, 70, 32), "Full", "toggle_fullscreen")
+            Button(Rect(w // 2 - 40, 150, 40, 36), "-", "agents_minus"),
+            Button(Rect(w // 2 + 20, 150, 40, 36), "+", "agents_plus"),
+            Button(Rect(w // 2 - 40, 240, 40, 36), "-", "food_minus"),
+            Button(Rect(w // 2 + 20, 240, 40, 36), "+", "food_plus"),
+            Button(Rect(w // 2 - 50, 330, 120, 36), "Next size", "grid_size"),
+            Button(Rect(w // 2 - 100, 400, 200, 40), "Back", "return_back"),
+            Button(Rect(w - 90, 15, 70, 32), "Full", "toggle_fullscreen"),
         ]
 
     def run(self) -> dict | None:
         running = True
         while running:
-            self.clock.tick(60)
+            self.window.tick(60)
 
-            # Potentiellement revoir cette implémentation avec l'encaspulation de Maëva car
-            # pour l'instant c'est **MOCHE**
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+            for event in self.window.get_events():
+                if event.type == EventType.QUIT:
                     return None
 
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                if event.type == EventType.KEY_DOWN and event.key == Key.ESCAPE:
                     if self.state == "settings":
                         self.state = "main"
                     else:
                         return None
 
-                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    result = self._handle_click(event.pos)
+                if event.type == EventType.MOUSE_CLICK:
+                    result = self._handle_click(event.mouse_pos)
                     if result == "play":
                         return self._build_config()
                     if result == "exit":
                         return None
 
-            self._render(pygame.mouse.get_pos())
+            self._render(self.window.get_mouse_pos())
 
         return None
 
-    # Potentiellement revoir cette implémentation avec l'encaspulation de Maëva car
-    # pour l'instant c'est **MOCHE**
     def _handle_click(self, mouse_pos):
         buttons = self.main_buttons if self.state == "main" else self.settings_buttons
 
@@ -121,21 +120,9 @@ class Menu:
         return None
 
     def _toggle_fullscreen(self):
-        self.fullscreen = not self.fullscreen
-
-        if self.fullscreen:
-            try:
-                self.screen = pygame.display.set_mode(
-                    self.window_size, pygame.FULLSCREEN | pygame.SCALED
-                )
-
-            except pygame.error:
-                self.fullscreen = False
-                pygame.display.quit()
-                pygame.display.init()
-                self.screen = pygame.display.set_mode(self.window_size)
-        else:
-            self.screen = pygame.display.set_mode(self.window_size)
+        self.window.toggle_fullscreen()
+        self.fullscreen = self.window.fullscreen
+        self.render.screen = self.window.screen
 
     def _build_config(self) -> dict:
         name, grid_width, grid_height = GRID_PRESETS[self.grid_preset_index]
@@ -149,55 +136,49 @@ class Menu:
         }
 
     def _render(self, mouse_pos):
-        self.screen.fill(BACKGROUND)
+        self.window.clear()
  
         if self.state == "main":
             self._render_main(mouse_pos)
         else:
             self._render_settings(mouse_pos)
 
-        pygame.display.flip()
+        self.window.update()
 
     def _render_main(self, mouse_pos):
-        w = self.screen.get_width()
+        w = self.window.get_width()
 
-        # titre:
-        # Ouroboros (serpent infini) ?
-        # King cobra (le serpent le + intelligent)
-        title = self.font_title.render("Intelligent Snake", True, ACCENT)
-        self.screen.blit(title, title.get_rect(center=(w // 2, 60)))
+        bg_rect = Rect(0, 0, w, self.window.get_height())
+        self.render.draw_rect(bg_rect, BACKGROUND)
 
-        config_label = self.font.render("Configuration", True, ACCENT)
-        self.screen.blit(config_label, config_label.get_rect(center=(w // 2, 100)))
+        title_x = w // 2
+        title_y = 60
 
-        ai_label = self.font.render(f"Number of AIs: {self.num_agents}", True, LIGHT_GREEN)
-        self.screen.blit(ai_label, ai_label.get_rect(center=(w // 2, 160)))
+        self.render.draw_image(self.logo, title_x - 76, title_y - 10, align="center" )
+        self.render.draw_text("     uroboros", title_x, title_y, self.font_title,  ACCENT, align="center")
 
-        food_label = self.font.render(f"Food density: {self.food_density:.0%}", True, LIGHT_GREEN)
-        self.screen.blit(food_label, food_label.get_rect(center=(w // 2, 210)))
-
+        self.render.draw_text("Configuration", w // 2, 100, self.font, ACCENT, align="center")
+        self.render.draw_text(f"Number of AIs: {self.num_agents}", w // 2, 160, self.font, LIGHT_GREEN, align="center")
+        self.render.draw_text(f"Food density: {self.food_density:.0%}", w // 2, 210, self.font, LIGHT_GREEN, align="center")
+        
         name, gw, gh = GRID_PRESETS[self.grid_preset_index]
-        grid_label = self.font.render(f"Grid Size: {name} ({gw}x{gh})", True, LIGHT_GREEN)
-        self.screen.blit(grid_label, grid_label.get_rect(center=(w // 2, 260)))
+        self.render.draw_text(f"Grid Size: {name} ({gw}x{gh})", w // 2, 260, self.font, LIGHT_GREEN, align="center")
 
         for button in self.main_buttons:
-            button.draw(self.screen, self.font, BACKGROUND, mouse_pos)
+            button.draw(self.render, self.font, BACKGROUND, mouse_pos)
 
     def _render_settings(self, mouse_pos):
-        w = self.screen.get_width()
+        w = self.window.get_width()
 
-        title = self.font_title.render("Settings", True, ACCENT)
-        self.screen.blit(title, title.get_rect(center=(w // 2, 60)))
+        bg_rect = Rect(0, 0, w, self.window.get_height())
+        self.render.draw_rect(bg_rect, BACKGROUND)
 
-        label = self.font.render(f"Number of AIs: {self.num_agents}", True, LIGHT_GREEN)
-        self.screen.blit(label, label.get_rect(center=(w // 2, 130)))
-
-        label = self.font.render(f"Food density: {self.food_density:.0%}", True, LIGHT_GREEN)
-        self.screen.blit(label, label.get_rect(center=(w // 2, 220)))
+        self.render.draw_text("Settings", w // 2, 60, self.font_title, ACCENT, align="center")
+        self.render.draw_text(f"Number of AIs: {self.num_agents}", w // 2, 130, self.font, LIGHT_GREEN, align="center")
+        self.render.draw_text(f"Food density: {self.food_density:.0%}", w // 2, 220, self.font, LIGHT_GREEN, align="center")
 
         name, gw, gh = GRID_PRESETS[self.grid_preset_index]
-        grid_label = self.font.render(f"Grid Size: {name} ({gw}x{gh})", True, LIGHT_GREEN)
-        self.screen.blit(grid_label, grid_label.get_rect(center=(w // 2, 310)))
+        self.render.draw_text(f"Grid Size: {name} ({gw}x{gh})", w // 2, 310, self.font, LIGHT_GREEN, align="center")
 
         for button in self.settings_buttons:
-            button.draw(self.screen, self.font, BACKGROUND, mouse_pos)
+            button.draw(self.render, self.font, BACKGROUND, mouse_pos)

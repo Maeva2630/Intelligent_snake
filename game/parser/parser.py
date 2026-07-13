@@ -13,7 +13,7 @@ _DEFAULT_FOOD_DENSITY = 0.05
 _DEFAULT_NUM_AGENTS = MIN_AGENTS
 _DEFAULT_TICK_RATE = 10
 _DEFAULT_GRID = (32, 24)
-
+_DEFAULT_FULLSCREEN = False
 
 @dataclass
 class SnakeArgs:
@@ -22,6 +22,7 @@ class SnakeArgs:
     tick_rate: int
     grid_width: int
     grid_height: int
+    fullscreen: bool
     skip_menu: bool
 
     @classmethod
@@ -38,7 +39,7 @@ class SnakeArgs:
     ) -> "SnakeArgs":
         skip_menu = any(
             value is not None
-            for value in (args.food, args.agent, args.tick, args.grid)
+            for value in (args.food, args.agent, args.tick, args.grid, args.fullscreen)
         )
 
         errors: list[str] = []
@@ -76,6 +77,8 @@ class SnakeArgs:
                     f"{_MIN_GRID_DIM} and {_MAX_GRID_DIM}."
                 )
 
+        fullscreen = args.fullscreen if args.fullscreen is not None else _DEFAULT_FULLSCREEN
+
         if errors:
             parser.error("\n  ".join(errors))
 
@@ -85,6 +88,7 @@ class SnakeArgs:
             tick_rate=tick_rate,
             grid_width=grid_width,
             grid_height=grid_height,
+            fullscreen=fullscreen,
             skip_menu=skip_menu,
         )
 
@@ -133,6 +137,13 @@ class SnakeArgs:
             help=f"Grid dimensions in cells, e.g. --grid 35 70 "
                  f"(default: {_DEFAULT_GRID[0]} {_DEFAULT_GRID[1]})",
         )
+        parser.add_argument(
+            "--fullscreen",
+            dest="fullscreen",
+            action="store_true",
+            default=None,
+            help="Launch directly in fullscreen mode",
+        )
         return parser
 
     # --- Helpers --- #
@@ -143,13 +154,14 @@ class SnakeArgs:
             "grid_width": self.grid_width,
             "grid_height": self.grid_height,
             "food_density": self.food_density,
+            "fullscreen": self.fullscreen,
         }
 
     def __str__(self) -> str:
         return (
             f"SnakeArgs(food_density={self.food_density}, "
             f"num_agents={self.num_agents}, tick_rate={self.tick_rate}, "
-            f"grid={self.grid_width}x{self.grid_height})"
+            f"grid={self.grid_width}x{self.grid_height}, fullscreen={self.fullscreen})"
         )
 
 def parse_args(argv: list[str] | None = None) -> SnakeArgs:

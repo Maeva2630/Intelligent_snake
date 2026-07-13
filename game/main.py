@@ -1,12 +1,13 @@
-import pygame
 
-from game.parser.parser import SnakeArgs, parse_args
 from game.render.menu import Menu
 from game.render.game import Game
+from game.parser.parser import SnakeArgs, parse_args
+from game.encapsulation.window import Window
 
 def ouroboros(args: SnakeArgs):
     running_app = True
     skip_menu_once = args.skip_menu
+    window = Window(screen_width=640, screen_height=640, caption="Ouroboros")
 
     while running_app:
 
@@ -14,7 +15,7 @@ def ouroboros(args: SnakeArgs):
             config = args.as_menu_config()
             skip_menu_once = False
         else:
-            menu = Menu()
+            menu = Menu(window)
             menu_config = menu.run()
 
             if menu_config is None:
@@ -25,7 +26,7 @@ def ouroboros(args: SnakeArgs):
 
         tick_rate = args.tick_rate
 
-        game = Game(
+        game = Game(window,
             grid_width=config["grid_width"],
             grid_height=config["grid_height"],
             food_density=config["food_density"],
@@ -38,7 +39,7 @@ def ouroboros(args: SnakeArgs):
         if next_screen == "quit":
             running_app = False
 
-    pygame.quit()
+    window.quit()
 
 if __name__ == "__main__":
     args = parse_args()
