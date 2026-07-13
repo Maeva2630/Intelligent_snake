@@ -13,7 +13,7 @@ MAX_SPEED_MULTIPLIER = 8.0
 class Game:
     def __init__(self, grid_width: int = 32, grid_height: int = 24,
                  tile_size: int = 35, tick_rate: int = 10,
-                 num_agents: int = 2, food_density: float = 0.05):
+                 num_agents: int = 2, food_density: float = 0.05, fullscreen: bool = False):
         pygame.init()
         pygame.display.set_caption("Intelligent Snake - Game")
 
@@ -26,9 +26,24 @@ class Game:
         window_width = grid_pixel_width + PANEL_WIDTH
         window_height = max(grid_pixel_height, MIN_WINDOW_HEIGHT)
 
-        self.screen = pygame.display.set_mode(
-            (window_width, window_height)
-        )
+        self.window_size = (window_width, window_height)
+        self.fullscreen = fullscreen
+
+        if fullscreen:
+            try:
+                self.screen = pygame.display.set_mode(
+                    self.window_size, pygame.FULLSCREEN | pygame.SCALED
+                )
+
+            except pygame.error:
+                self.fullscreen = False
+                pygame.display.quit()
+                pygame.display.init()
+                self.screen = pygame.display.set_mode(self.window_size)
+        else:
+            self.screen = pygame.display.set_mode(
+                (window_width, window_height)
+            )
         self.render = Render(self.screen, tile_size)
         self.hud = Hud(self.screen, panel_x=grid_pixel_width, panel_height=window_height)
         self.clock = pygame.time.Clock()
@@ -87,6 +102,9 @@ class Game:
         if action == "toggle_pause":
             self.paused = not self.paused
 
+        elif action == "toggle_fullscreen":
+            self._toggle_fullscreen()
+
         elif action == "food_minus":
             self.food_density = round(max(MIN_FOOD_DENSITY, self.food_density - FOOD_DENSITY_STEP), 2)
 
@@ -108,6 +126,26 @@ class Game:
             self.running = False
             self._next_screen = "menu"
 
+    def _toggle_fullscreen(self):
+        self.fullscreen = not self.fullscreen
+
+        if self.fullscreen:
+            try:
+                self.screen = pygame.display.set_mode(
+                    self.window_size, pygame.FULLSCREEN | pygame.SCALED
+                )
+
+            except pygame.error:
+                self.fullscreen = False
+                pygame.display.quit()
+                pygame.display.init()
+                self.screen = pygame.display.set_mode(self.window_size)
+        else:
+            self.screen = pygame.display.set_mode(self.window_size)
+
+        self.render.screen = self.screen
+        self.hud.screen = self.screen
+
     def _update(self):
         self.elapsed_ticks += 1
         for agent in self.agents:
@@ -120,7 +158,7 @@ class Game:
         self.render.draw_grid(self.grid)
         self.hud.render(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
-            self.agents, self.food_density, self.paused, mouse_pos,
+            self.agents, self.food_density, self.paused, self.fullscreen, mouse_pos,
         )
 
         pygame.display.flip()

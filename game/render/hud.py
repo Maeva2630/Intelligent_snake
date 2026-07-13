@@ -32,6 +32,9 @@ class Hud:
         x = self.panel_x
 
         self.pause_btn = Button(pygame.Rect(x + 20, 15, 32, 32), "II", "toggle_pause")
+        self.fullscreen_btn = Button(
+            pygame.Rect(x + PANEL_WIDTH - 90, 15, 70, 32), "Full", "toggle_fullscreen"
+        )
         self.speed_minus_btn = Button(pygame.Rect(x + 20, 135, 32, 32), "-", "speed_minus")
         self.speed_plus_btn = Button(pygame.Rect(x + PANEL_WIDTH - 52, 135, 32, 32), "+", "speed_plus")
         self.food_minus_btn = Button(pygame.Rect(x + 20, 180, 32, 32), "-", "food_minus")
@@ -46,15 +49,15 @@ class Hud:
 
     def handle_click(self, mouse_pos) -> str | None:
         for button in (
-            self.pause_btn, self.speed_minus_btn, self.speed_plus_btn,
+            self.pause_btn, self.fullscreen_btn, self.speed_minus_btn, self.speed_plus_btn,
             self.food_minus_btn, self.food_plus_btn, self.add_ai_btn, self.back_btn,
         ):
             if button.is_hovered(mouse_pos):
                 return button.action
         return None
 
-    def render(self, speed_multiplier: float, elapsed_ticks: int, tick_rate: int,
-               agents: list[AgentInfo], food_density: float, paused: bool, mouse_pos):
+    def render(self, speed_multiplier: float, elapsed_ticks: int, tick_rate: int, agents: list[AgentInfo],
+               food_density: float, paused: bool, fullscreen: bool, mouse_pos):
         panel_rect = pygame.Rect(self.panel_x, 0, PANEL_WIDTH, self.panel_height)
         pygame.draw.rect(self.screen, BACKGROUND, panel_rect)
         pygame.draw.line(self.screen, WHITE, (self.panel_x, 0), (self.panel_x, self.panel_height))
@@ -68,6 +71,10 @@ class Hud:
             "Paused" if paused else "Running", True, LIGHT_GREEN
         )
         self.screen.blit(pause_state_label, (self.panel_x + 85, 25))
+
+        # Fullscreen
+        self.fullscreen_btn.label = "Window" if fullscreen else "Full"
+        self.fullscreen_btn.draw(self.screen, self.font, BACKGROUND, mouse_pos)
 
         # Timer
         time_caption = self.font.render("TIME", True, WHITE)

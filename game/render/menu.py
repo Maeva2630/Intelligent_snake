@@ -18,12 +18,15 @@ MAX_FOOD_DENSITY = 2.00
 FOOD_DENSITY_STEP = 0.01
 
 class Menu:
-    def __init__(self, screen_width: int = 640, screen_height: int = 480):
+    def __init__(self, window_width: int = 640, window_height: int = 480):
         pygame.init()
 
-        self.screen = pygame.display.set_mode((screen_width, screen_height))
+        self.screen = pygame.display.set_mode((window_width, window_height))
         pygame.display.set_caption("Intelligent Snake - Menu")
         self.clock = pygame.time.Clock()
+
+        self.window_size = (window_width, window_height)
+        self.fullscreen = False
 
         self.font_title = pygame.font.SysFont(None, 48)
         self.font = pygame.font.SysFont(None, 30)
@@ -55,6 +58,7 @@ class Menu:
             Button(pygame.Rect(w // 2 + 20, 240, 40, 36), "+", "food_plus"),
             Button(pygame.Rect(w // 2 - 50, 330, 120, 36), "Next size", "grid_size"),
             Button(pygame.Rect(w // 2 - 100, 400, 200, 40), "Back", "return_back"),
+            Button(pygame.Rect(w - 90, 15, 70, 32), "Full", "toggle_fullscreen")
         ]
 
     def run(self) -> dict | None:
@@ -109,10 +113,29 @@ class Menu:
                 self.food_density = round(max(MIN_FOOD_DENSITY, self.food_density - FOOD_DENSITY_STEP), 2)
             elif action == "food_plus":
                 self.food_density = round(min(MAX_FOOD_DENSITY, self.food_density + FOOD_DENSITY_STEP), 2)
+            elif action == "toggle_fullscreen":
+                self._toggle_fullscreen()
             else:
                 return action
 
         return None
+
+    def _toggle_fullscreen(self):
+        self.fullscreen = not self.fullscreen
+
+        if self.fullscreen:
+            try:
+                self.screen = pygame.display.set_mode(
+                    self.window_size, pygame.FULLSCREEN | pygame.SCALED
+                )
+
+            except pygame.error:
+                self.fullscreen = False
+                pygame.display.quit()
+                pygame.display.init()
+                self.screen = pygame.display.set_mode(self.window_size)
+        else:
+            self.screen = pygame.display.set_mode(self.window_size)
 
     def _build_config(self) -> dict:
         name, grid_width, grid_height = GRID_PRESETS[self.grid_preset_index]
@@ -122,6 +145,7 @@ class Menu:
             "grid_height": grid_height,
             "grid_preset_name": name,
             "food_density": self.food_density,
+            "fullscreen": self.fullscreen
         }
 
     def _render(self, mouse_pos):
