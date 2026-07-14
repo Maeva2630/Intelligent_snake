@@ -9,6 +9,8 @@ from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_ST
 from game.render.hud import Hud, AgentInfo, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
 
+from game.entity.food import FoodManager
+
 MIN_WINDOW_HEIGHT = 480
 MIN_SPEED_MULTIPLIER = 0.25
 MAX_SPEED_MULTIPLIER = 8.0
@@ -43,6 +45,9 @@ class Game:
         self.speed_multiplier: float = 1.0
         self._accumulator: float = 0.0
         self.elapsed_ticks: int = 0
+        self.food_manager = FoodManager(self.render, (grid_width, grid_height), food_density)
+
+        self.food_manager.generate_food()
  
         self.agents: list[AgentInfo] = [
             AgentInfo(id=i + 1) for i in range(num_agents)
@@ -123,6 +128,7 @@ class Game:
         self.elapsed_ticks += 1
         for agent in self.agents:
             agent.play_time_ticks += 1
+        self.food_manager.update()
 
     def _render(self):
         mouse_pos = self.window.get_mouse_pos()
@@ -131,6 +137,7 @@ class Game:
         bg_rect = Rect(0, 0, self.window.get_width(), self.window.get_height())
         self.render.draw_rect(bg_rect, BACKGROUND)
         self.render.draw_grid(self.grid)
+        self.food_manager.draw_foods()
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
             self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
