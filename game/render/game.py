@@ -5,6 +5,9 @@ from game.encapsulation.render import Render
 from game.encapsulation.event import EventType, Key
 from game.encapsulation.rect import Rect
 from game.render.constants import BACKGROUND
+from game.snake.world_view import WorldView
+from game.snake.direction import Direction
+from game.snake.agent import Agent
 from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_STEP
 from game.render.hud import Hud, AgentInfo, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
@@ -44,9 +47,15 @@ class Game:
         self._accumulator: float = 0.0
         self.elapsed_ticks: int = 0
  
-        self.agents: list[AgentInfo] = [
-            AgentInfo(id=i + 1) for i in range(num_agents)
+        self.agents: list[Agent] = [
+            self._make_agent(agent_id=i + 1, index=i, total=num_agents)
+            for i in range(num_agents)
         ]
+
+    def _make_agent(self, agent_id: int, index: int, total: int) -> Agent:
+        x = (self.grid.width // (total + 1)) * (index + 1)
+        y = self.grid.height // 2
+        return Agent(agent_id=agent_id, start_position=(x, y), direction=Direction.EAST)
 
     def run(self) -> str:
         while self.running:
@@ -102,7 +111,10 @@ class Game:
         elif action == "add_ai":
             if len(self.agents) < MAX_VISIBLE_AGENTS:
                 next_id = max((agent.id for agent in self.agents), default=0) + 1
-                self.agents.append(AgentInfo(id=next_id))
+                new_agent = self._make_agent(
+                    agent_id=next_id, index=len(self.agents), total=len(self.agents) + 1
+                )
+                self.agents.append(new_agent)
 
         elif action == "back_to_menu":
             self.running = False
@@ -121,8 +133,11 @@ class Game:
 
     def _update(self):
         self.elapsed_ticks += 1
+
         for agent in self.agents:
-            agent.play_time_ticks += 1
+            other_agents = [a for a in self.agents if a is not agent]
+            world_view = WorldView(grid=self.grid, other_agents=other_agents, tick=self.elapsed_ticks)
+            agent.tick(world_view)
 
     def _render(self):
         mouse_pos = self.window.get_mouse_pos()
@@ -131,6 +146,12 @@ class Game:
         bg_rect = Rect(0, 0, self.window.get_width(), self.window.get_height())
         self.render.draw_rect(bg_rect, BACKGROUND)
         self.render.draw_grid(self.grid)
+
+        agent_infos = [
+            AgentInfo(id=a.id, length=a.length, play_time_ticks=a.play_time_ticks)
+            for a in self.agents
+        ]
+
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
             self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
