@@ -128,7 +128,7 @@ class Game:
         self.elapsed_ticks += 1
         for agent in self.agents:
             agent.play_time_ticks += 1
-        self.food_manager.update()
+        self.food_manager.update(self.food_density)
 
     def _render(self):
         mouse_pos = self.window.get_mouse_pos()
