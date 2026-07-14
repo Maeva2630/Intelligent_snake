@@ -1,14 +1,11 @@
 """ Main Menu: Configure the settings before launching the game. """
 
-# import pygame
-
 from game.encapsulation.rect import Rect
-from game.encapsulation.event import Event, EventType, Key
+from game.encapsulation.event import EventType, Key
 from game.encapsulation.window import Window
 from game.encapsulation.render import Render
 from game.render.button import Button
-
-from game.render.constants import ACCENT, BACKGROUND, LIGHT_GREEN, WHITE
+from game.render.constants import ACCENT, BACKGROUND, LIGHT_GREEN
 
 GRID_PRESETS = [
     ("Small", 16, 12),
@@ -16,17 +13,23 @@ GRID_PRESETS = [
     ("Big", 48, 36),
 ]
 
-MIN_AGENTS = 2
-MAX_AGENTS = 42
+MIN_AGENTS = 1
+MAX_AGENTS = 4
 
 MIN_FOOD_DENSITY = 0.01
 MAX_FOOD_DENSITY = 2.00
 FOOD_DENSITY_STEP = 0.01
 
 class Menu:
-    def __init__(self, window: Window):
+    def __init__(self, window: Window, screen_width: int = 640, screen_height: int = 480):
+
         self.window = window
-        self.render = Render(window.screen, tile_size=0)
+        self.window.resize(screen_width, screen_height)
+
+        self.render = Render(self.window.screen, tile_size=0)
+
+        self.logo = self.render.load_image("assets/logo/Ouroboros.png", (48, 48))
+
         self.font_title = 48
         self.font = 30
         self.font_small = 22
@@ -36,6 +39,7 @@ class Menu:
 
         self.state = "main"
         self.food_density = 0.05
+        self.fullscreen = self.window.fullscreen
 
         self._build_main_buttons()
         self._build_settings_buttons()
@@ -57,15 +61,14 @@ class Menu:
             Button(Rect(w // 2 + 20, 240, 40, 36), "+", "food_plus"),
             Button(Rect(w // 2 - 50, 330, 120, 36), "Next size", "grid_size"),
             Button(Rect(w // 2 - 100, 400, 200, 40), "Back", "return_back"),
+            Button(Rect(w - 90, 15, 70, 32), "Full", "toggle_fullscreen"),
         ]
 
     def run(self) -> dict | None:
         running = True
         while running:
-            delta_time = self.window.tick(60)
+            self.window.tick(60)
 
-            # Potentiellement revoir cette implémentation avec l'encaspulation de Maëva car
-            # pour l'instant c'est **MOCHE**
             for event in self.window.get_events():
                 if event.type == EventType.QUIT:
                     return None
@@ -83,13 +86,10 @@ class Menu:
                     if result == "exit":
                         return None
 
-            mouse_pos = self.window.get_mouse_pos()
-            self._render(mouse_pos)
+            self._render(self.window.get_mouse_pos())
 
         return None
 
-    # Potentiellement revoir cette implémentation avec l'encaspulation de Maëva car
-    # pour l'instant c'est **MOCHE**
     def _handle_click(self, mouse_pos):
         buttons = self.main_buttons if self.state == "main" else self.settings_buttons
 
@@ -112,10 +112,17 @@ class Menu:
                 self.food_density = round(max(MIN_FOOD_DENSITY, self.food_density - FOOD_DENSITY_STEP), 2)
             elif action == "food_plus":
                 self.food_density = round(min(MAX_FOOD_DENSITY, self.food_density + FOOD_DENSITY_STEP), 2)
+            elif action == "toggle_fullscreen":
+                self._toggle_fullscreen()
             else:
                 return action
 
         return None
+
+    def _toggle_fullscreen(self):
+        self.window.toggle_fullscreen()
+        self.fullscreen = self.window.fullscreen
+        self.render.screen = self.window.screen
 
     def _build_config(self) -> dict:
         name, grid_width, grid_height = GRID_PRESETS[self.grid_preset_index]
@@ -125,6 +132,7 @@ class Menu:
             "grid_height": grid_height,
             "grid_preset_name": name,
             "food_density": self.food_density,
+            "fullscreen": self.fullscreen
         }
 
     def _render(self, mouse_pos):
@@ -140,11 +148,15 @@ class Menu:
     def _render_main(self, mouse_pos):
         w = self.window.get_width()
 
-        # titre:
-        # Ouroboros (serpent infini) ?
-        # King cobra (le serpent le + intelligent)
-        # oulala je sais pas 
-        self.render.draw_text("Intelligent Snake", w // 2, 60, self.font_title, ACCENT, align="center")
+        bg_rect = Rect(0, 0, w, self.window.get_height())
+        self.render.draw_rect(bg_rect, BACKGROUND)
+
+        title_x = w // 2
+        title_y = 60
+
+        self.render.draw_image(self.logo, title_x - 76, title_y - 10, align="center" )
+        self.render.draw_text("     uroboros", title_x, title_y, self.font_title,  ACCENT, align="center")
+
         self.render.draw_text("Configuration", w // 2, 100, self.font, ACCENT, align="center")
         self.render.draw_text(f"Number of AIs: {self.num_agents}", w // 2, 160, self.font, LIGHT_GREEN, align="center")
         self.render.draw_text(f"Food density: {self.food_density:.0%}", w // 2, 210, self.font, LIGHT_GREEN, align="center")
@@ -157,6 +169,9 @@ class Menu:
 
     def _render_settings(self, mouse_pos):
         w = self.window.get_width()
+
+        bg_rect = Rect(0, 0, w, self.window.get_height())
+        self.render.draw_rect(bg_rect, BACKGROUND)
 
         self.render.draw_text("Settings", w // 2, 60, self.font_title, ACCENT, align="center")
         self.render.draw_text(f"Number of AIs: {self.num_agents}", w // 2, 130, self.font, LIGHT_GREEN, align="center")

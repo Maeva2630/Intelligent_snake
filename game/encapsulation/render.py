@@ -1,6 +1,6 @@
 import pygame
-import game.grid.grid as grid
-from game.encapsulation.rect import Rect 
+from game.encapsulation.rect import Rect
+from game.render.constants import WHITE, BACKGROUND
 
 class Render:
     """Encapsulate pygame rendering"""
@@ -8,6 +8,8 @@ class Render:
         self.screen = screen
         self.tile_size = tile_size
         self._fonts = {}
+        self._images = {}
+
         if tile_size and tile_size > 0:
             self.grid = [[0 for _ in range(screen.get_width() // tile_size)] for _ in range(screen.get_height() // tile_size)]
         else:
@@ -22,12 +24,26 @@ class Render:
     def draw_circle(self, x, y, color, size):
         pygame.draw.circle(self.screen, color, (int(x * size + size / 2), int(y * size + size / 2)), int(size / 2))
 
+    def draw_line(self, start: tuple[int, int], end: tuple[int, int], color, width: int = 1):
+        """Draw a straight line"""
+        pygame.draw.line(self.screen, color, start, end, width)
+
     def draw_grid(self, grid):
         """Draw game grid in background"""
         for x in range(grid.width):
             for y in range(grid.height):
-                self.draw_grid_cell(x, y, (255, 255, 255), self.tile_size)
 
+                pygame.draw.rect(
+                    self.screen,
+                    WHITE,
+                    (
+                        x * self.tile_size,
+                        y * self.tile_size,
+                        self.tile_size,
+                        self.tile_size,
+                    ),
+                    1
+                )
 
     def _get_font(self, size: int):
         if size not in self._fonts:
@@ -49,3 +65,32 @@ class Render:
         """Draw surface (rect or coordinates)"""
         self.screen.blit(surface, dest)
 
+    def load_image(self, path: str, size: tuple[int, int] | None = None) -> pygame.Surface:
+        """Load an image only once"""
+        key = (path, size)
+
+        if key not in self._images:
+            image = pygame.image.load(path).convert_alpha()
+
+            if size is not None:
+                image = pygame.transform.smoothscale(image, size)
+
+            self._images[key] = image
+
+        return self._images[key]
+
+
+    def draw_image(self, image: pygame.Surface, x: int, y: int, align: str = "topleft"):
+        """Draw an image with alignment"""
+        rect = image.get_rect()
+
+        if align == "center":
+            rect.center = (x, y)
+        elif align == "midleft":
+            rect.midleft = (x, y)
+        elif align == "midright":
+            rect.midright = (x, y)
+        else:
+            rect.topleft = (x, y)
+
+        self.screen.blit(image, rect)

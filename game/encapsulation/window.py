@@ -18,10 +18,11 @@ KEY_MAP = {
 }
 
 class Window:
-    def __init__(self, screen_width: int, screen_height: int, tile_size: int = 0, caption :str = None):
+    def __init__(self, screen_width: int, screen_height: int, tile_size: int = 0, caption: str = None):
         self.tile_size = tile_size
         self.screen_width = screen_width
         self.screen_height = screen_height
+        self.fullscreen = False
 
         pygame.init()
         if caption:
@@ -42,23 +43,50 @@ class Window:
 
     def resize(self, new_width: int, new_height: int, tile_size: int = None):
         """Resize current window size"""
+
+        if (self.screen_width == new_width
+            and self.screen_height == new_height
+            and (tile_size is None or self.tile_size == tile_size)):
+            return
+
         self.screen_width = new_width
         self.screen_height = new_height
         
         if tile_size:
             self.tile_size = tile_size
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+
+        flags = 0
+        if self.fullscreen:
+            flags = pygame.FULLSCREEN | pygame.SCALED
+
+        self.screen = pygame.display.set_mode(
+            (self.screen_width, self.screen_height),
+            flags
+        )
+ 
+    def toggle_fullscreen(self):
+        """Toggle full screen / window"""
+        self.fullscreen = not self.fullscreen
+        size = (self.screen_width, self.screen_height)
+ 
+        if self.fullscreen:
+            try:
+                self.screen = pygame.display.set_mode(size, pygame.FULLSCREEN | pygame.SCALED)
+            except pygame.error:
+                self.fullscreen = False
+                pygame.display.quit()
+                pygame.display.init()
+                self.screen = pygame.display.set_mode(size)
+        else:
+            self.screen = pygame.display.set_mode(size)
 
     def update(self):
         """Update the screen"""
         pygame.display.flip()
 
-
     def tick(self, fps: int = 60) -> float:
         """Update deltatime in seconds"""
         return self.clock.tick(fps) / 1000.0
-
-
 
     def get_events(self) -> list[Event]:
         events = []
