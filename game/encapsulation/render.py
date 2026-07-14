@@ -15,21 +15,24 @@ class Render:
         else:
             self.grid = []
 
-    def draw_grid_cell(self, x, y, color, size, border_radius: int = 0):
+    def draw_grid_cell(self, x: int, y: int, color: tuple[int, int, int], size: int, border_radius: int = 0):
         pygame.draw.rect(self.screen, color, (x * size, y * size, size, size), border_radius)
 
-    def draw_rect(self, rect: Rect, color, width: int = 0, border_radius: int = 0):
+    def draw_rect(self, rect: Rect, color: tuple[int, int, int], width: int = 0, border_radius: int = 0):
         pygame.draw.rect(self.screen, color, (rect.x, rect.y, rect.width, rect.height), width, border_radius)
 
-    def draw_circle(self, x, y, color, size):
+    def draw_circle(self, x: int, y: int, color: tuple[int, int, int], size: int):
         pygame.draw.circle(self.screen, color, (int(x * size + size / 2), int(y * size + size / 2)), int(size / 2))
 
-    def draw_line(self, start: tuple[int, int], end: tuple[int, int], color, width: int = 1):
+    def draw_line(self, start: tuple[int, int], end: tuple[int, int], color: tuple[int, int, int], width: int = 1):
         """Draw a straight line"""
         pygame.draw.line(self.screen, color, start, end, width)
 
-    def draw_grid(self, grid):
+    def draw_grid(self, grid, tile_size: int = None):
         """Draw game grid in background"""
+        if tile_size is None:
+            tile_size = self.tile_size
+            
         for x in range(grid.width):
             for y in range(grid.height):
 
