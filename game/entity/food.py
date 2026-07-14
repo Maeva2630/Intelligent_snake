@@ -38,3 +38,17 @@ class FoodManager:
         
         self.foods = [food for food in self.foods if food.live_length > 0]
         self.generate_food()
+
+    def eat_food(self, x: int, y: int):
+        for food in self.foods:
+            if food.x == x and food.y == y:
+                self.foods.remove(food)
+                return True
+        return False
+
+    def is_food_at(self, x: int, y: int):
+        for food in self.foods:
+            if food.x == x and food.y == y:
+                return True
+        return False
+
