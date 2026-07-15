@@ -8,9 +8,10 @@ from game.snake.agent_memory import AgentMemory
 
 class Agent:
     def __init__(self, agent_id: int, start_position: tuple[int, int],
-                 direction: Direction = Direction.EAST):
+                 color: tuple[int, int, int], direction: Direction = Direction.EAST):
         self.id = agent_id
         self.snake = Snake(start_position, direction)
+        self.color = color
         self.memory = AgentMemory()
         self.brain = AgentBrain()
         self.play_time_ticks = 0

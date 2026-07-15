@@ -4,12 +4,12 @@ from game.encapsulation.window import Window
 from game.encapsulation.render import Render
 from game.encapsulation.event import EventType, Key
 from game.encapsulation.rect import Rect
-from game.render.constants import BACKGROUND, AGENT_COLORS, ACCENT
+from game.render.constants import BACKGROUND, SNAKE_COLORS, ACCENT
 from game.snake.world_view import WorldView
 from game.snake.direction import Direction
 from game.snake.agent import Agent, resolve_collisions
 from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_STEP
-from game.render.hud import Hud, AgentInfo, PANEL_WIDTH, MAX_VISIBLE_AGENTS
+from game.render.hud import Hud, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
 
 MIN_WINDOW_HEIGHT = 480
@@ -55,7 +55,12 @@ class Game:
     def _make_agent(self, agent_id: int, index: int, total: int) -> Agent:
         x = (self.grid.width // (total + 1)) * (index + 1)
         y = self.grid.height // 2
-        return Agent(agent_id=agent_id, start_position=(x, y), direction=Direction.EAST)
+        return Agent(
+            agent_id=agent_id,
+            start_position=(x, y),
+            color=SNAKE_COLORS[(agent_id - 1) % len(SNAKE_COLORS)],
+            direction=Direction.EAST
+            )
 
     def run(self) -> str:
         while self.running:
@@ -152,17 +157,11 @@ class Game:
         for agent in self.agents:
             if not agent.alive:
                 continue
-            color = AGENT_COLORS[(agent.id - 1) % len(AGENT_COLORS)]
-            self.render.draw_snake(agent.snake, body_color=color, head_color=ACCENT)
-
-        agent_infos = [
-            AgentInfo(id=a.id, length=a.length, play_time_ticks=a.play_time_ticks)
-            for a in self.agents
-        ]
+            self.render.draw_snake(agent.snake, body_color=agent.color)
 
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
-            agent_infos, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
+            self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
         )
 
         self.window.update()
