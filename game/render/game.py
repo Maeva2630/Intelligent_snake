@@ -12,6 +12,8 @@ from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_ST
 from game.render.hud import Hud, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
 
+from game.entity.food import FoodManager
+
 MIN_WINDOW_HEIGHT = 480
 MIN_SPEED_MULTIPLIER = 0.25
 MAX_SPEED_MULTIPLIER = 8.0
@@ -46,6 +48,9 @@ class Game:
         self.speed_multiplier: float = 1.0
         self._accumulator: float = 0.0
         self.elapsed_ticks: int = 0
+        self.food_manager = FoodManager(self.render, (grid_width, grid_height), food_density)
+
+        self.food_manager.generate_food()
  
         self.agents: list[Agent] = [
             self._make_agent(agent_id=i + 1, index=i, total=num_agents)
@@ -143,8 +148,11 @@ class Game:
             other_agents = [a for a in self.agents if a is not agent]
             world_view = WorldView(grid=self.grid, other_agents=other_agents, tick=self.elapsed_ticks)
             agent.tick(world_view)
-
         resolve_collisions(self.agents)
+
+        for agent in self.agents:
+            agent.play_time_ticks += 1
+        self.food_manager.update(self.food_density)
 
     def _render(self):
         mouse_pos = self.window.get_mouse_pos()
@@ -159,6 +167,7 @@ class Game:
                 continue
             self.render.draw_snake(agent.snake, body_color=agent.color)
 
+        self.food_manager.draw_foods()
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
             self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
