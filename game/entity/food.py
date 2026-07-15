@@ -5,10 +5,11 @@ class Food:
     def __init__(self, x: int, y: int, render: Render):
         self.x = x
         self.y = y
-        self.live_length = random.randint(40, 80)
+        self.live_length = random.randint(60, 120)
 
     def draw(self, render: Render):
-        render.draw_circle(self.x, self.y, (255, 0, 0), render.tile_size)
+        apple_image = render.load_image("assets/entity/apple.png", (render.tile_size, render.tile_size))
+        render.draw_image(apple_image, self.x * render.tile_size, self.y * render.tile_size)
 
     
 class FoodManager:
