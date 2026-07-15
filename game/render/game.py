@@ -148,8 +148,9 @@ class Game:
             other_agents = [a for a in self.agents if a is not agent]
             world_view = WorldView(grid=self.grid, other_agents=other_agents, tick=self.elapsed_ticks)
             agent.tick(world_view)
-
         resolve_collisions(self.agents)
+
+        for agent in self.agents:
             agent.play_time_ticks += 1
         self.food_manager.update(self.food_density)
 
