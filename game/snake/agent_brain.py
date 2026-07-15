@@ -1,14 +1,16 @@
 """ Agent Brain: FSM, decision logic  """
 
 from enum import Enum
-from game.snake.direction import Direction
 
 LOW_ERNGY = 30
+
+_STRAIGHT = "straight"
+_LEFT = "left"
+_RIGHT = "right"
 
 class AgentState(Enum):
     EXPLORATION = "exploration"
     TARGET = "target"
-    SURVIVAL = "survival"
     DODGE = "dodge"
 
 class AgentBrain:
@@ -16,18 +18,21 @@ class AgentBrain:
         self.current_state = AgentState.EXPLORATION
 
     def decide(self, agent, world_view) -> None:
-        self._update_state(agent)
+        self._update_state(agent, world_view)
 
-        if self.current_state == AgentState.SURVIVAL:
+        if self.current_state == AgentState.TARGET:
             self._move_towards_known_food(agent, world_view)
         else:
             self._avoid_immediate_collisiont(agent, world_view)
-    
-    def _update_state(self, agent) -> None:
-        if agent.snake.energy <= LOW_ERNGY:
-            self.current_state = AgentState.SURVIVAL
-        elif agent.memory.known_resources():
-            self.current_state = AgentState.TARGET
+
+    def _update_state(self, agent, world_view) -> None:
+        if agent.memory.known_resources():
+            self.current_state = AgentState.TARGET_ACQUIRED
+            return
+
+        straight_pos = self._next_position(agent, agent.snake.direction, world_view.grid)
+        if self._is_blocked(agent, straight_pos, world_view):
+            self.current_state = AgentState.DODGE
         else:
             self.current_state = AgentState.EXPLORATION
 
@@ -37,34 +42,54 @@ class AgentBrain:
             self._avoid_immediate_collisiont(agent, world_view)
             return
         
-        direction = self._greedy_direction_towards(agent, target, world_view.grid)
-        agent.snake.set_direction(direction)
+        self._turn_towards(agent, target, world_view.grid)
 
-    def _avoid_immediate_collisiont(self, agent, world_view) -> None:
-        grid = world_view.grid
-        for direction in self._candidate_directions(agent.snake.direction):
+    def _turn_towards(self, agent, target: tuple[int, int], grid) -> None:
+        best_action = None
+        best_distance = None
+
+        for action, direction in self._reachable_directions(agent.snake.direction):
             dx, dy = direction.delta()
             next_pos = grid.handle_toric(agent.snake.head[0] + dx, agent.snake.head[1] + dy)
-            if not agent.snake.occupies(next_pos):
-                agent.snake.set_direction(direction)
-                return
-
-    def _greedy_direction_towards(self, agent, target: tuple[int, int], grid) -> Direction:
-        head_x, head_y = agent.snake.head
-        best_direction = agent.snake.direction
-        best_distance = grid.toric_distance(agent.snake.head, target)
-
-        for direction in Direction:
-            dx, dy = direction.delta()
-            next_pos = grid.handle_toric(head_x + dx, head_y + dy)
             if agent.snake.occupies(next_pos):
                 continue
+
             distance = grid.toric_distance(next_pos, target)
-            if distance < best_distance:
+            if best_distance is None or distance < best_distance:
                 best_distance = distance
-                best_direction = direction
+                best_action = action
 
-        return best_direction
+        self._apply_action(agent, best_action)
 
-    def _candidate_directions(self, current: Direction) -> list[Direction]:
-        return [current, current.turn_left(), current.turn_right()]
+    def _avoid_immediate_collisiont(self, agent, world_view) -> None:
+        for action, direction in self._reachable_directions(agent.snake.direction):
+            next_pos = self._next_position(agent, direction, world_view.grid)
+            if not self._is_blocked(agent, next_pos, world_view):
+                self._apply_action(agent, action)
+                return
+
+    def _is_blocked(self, agent, position: tuple[int, int], world_view) -> bool:
+        if agent.snake.occupies(position):
+            return True
+
+        return any(
+            other.alive and other.snake.occupies(position)
+            for other in world_view.other_agents
+        )
+
+    def _next_position(self, agent, direction, grid) -> tuple[int, int]:
+        dx, dy = direction.delta()
+        return grid.handle_toric(agent.snake.head[0] + dx, agent.snake.head[1] + dy)
+
+    def _reachable_directions(self, current):
+        return [
+            (_STRAIGHT, current),
+            (_LEFT, current.turn_left()),
+            (_RIGHT, current.turn_right()),
+        ]
+
+    def _apply_action(self, agent, action: str | None) -> None:
+        if action == _LEFT:
+            agent.snake.turn_left()
+        elif action == _RIGHT:
+            agent.snake.turn_right()

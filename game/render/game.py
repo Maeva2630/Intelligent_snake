@@ -4,10 +4,10 @@ from game.encapsulation.window import Window
 from game.encapsulation.render import Render
 from game.encapsulation.event import EventType, Key
 from game.encapsulation.rect import Rect
-from game.render.constants import BACKGROUND
+from game.render.constants import BACKGROUND, AGENT_COLORS, ACCENT
 from game.snake.world_view import WorldView
 from game.snake.direction import Direction
-from game.snake.agent import Agent
+from game.snake.agent import Agent, resolve_collisions
 from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_STEP
 from game.render.hud import Hud, AgentInfo, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
@@ -139,6 +139,8 @@ class Game:
             world_view = WorldView(grid=self.grid, other_agents=other_agents, tick=self.elapsed_ticks)
             agent.tick(world_view)
 
+        resolve_collisions(self.agents)
+
     def _render(self):
         mouse_pos = self.window.get_mouse_pos()
 
@@ -147,6 +149,12 @@ class Game:
         self.render.draw_rect(bg_rect, BACKGROUND)
         self.render.draw_grid(self.grid)
 
+        for agent in self.agents:
+            if not agent.alive:
+                continue
+            color = AGENT_COLORS[(agent.id - 1) % len(AGENT_COLORS)]
+            self.render.draw_snake(agent.snake, body_color=color, head_color=ACCENT)
+
         agent_infos = [
             AgentInfo(id=a.id, length=a.length, play_time_ticks=a.play_time_ticks)
             for a in self.agents
@@ -154,7 +162,7 @@ class Game:
 
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
-            self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
+            agent_infos, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
         )
 
         self.window.update()

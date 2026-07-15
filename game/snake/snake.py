@@ -21,8 +21,11 @@ class Snake:
     def length(self) -> int:
         return len(self.body)
 
-    def set_direction(self, direction: Direction) -> None:
-        self.direction = direction
+    def turn_left(self) -> None:
+        self.direction = self.direction.turn_left()
+
+    def turn_right(self) -> None:
+        self.direction = self.direction.turn_right()
 
     def move(self, grid: Grid) -> None:
         if not self.alive:
@@ -38,15 +41,11 @@ class Snake:
         else:
             self.body.pop()
 
-        self.energy -= 1
-        if self.energy <= 0:
-            self.alive = False
-
     def grow(self) -> None:
         self._pending_growth += 1
 
-    def feed(self, energy: int) -> None:
-        self.energy += energy
+    def die(self) -> None:
+        self.alive = False
 
     def occupies(self, position: tuple[int, int]) -> bool:
         return position in self.body

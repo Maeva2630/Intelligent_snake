@@ -30,3 +30,18 @@ class Agent:
         self.brain.decide(self, world_view)
         self.snake.move(world_view.grid)
         self.play_time_ticks += 1
+
+def resolve_collisions(agents: list[Agent]) -> None:
+    alive_agents = [agent for agent in agents if agent.alive]
+
+    for agent in alive_agents:
+        if agent.snake.collides_with_self():
+            agent.snake.die()
+            continue
+
+        for other in alive_agents:
+            if other is agent:
+                continue
+            if agent.snake.head in other.snake.body:
+                agent.snake.die()
+                break
