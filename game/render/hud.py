@@ -1,6 +1,5 @@
 """ In-game HUD: control panel with speed, timer, list of AIs informations and a top 3. """
 
-from dataclasses import dataclass
 from render.button import Button
 from render.constants import WHITE, ACCENT, BACKGROUND, LIGHT_GREEN
 from game.encapsulation.rect import Rect
@@ -8,14 +7,6 @@ from game.encapsulation.render import Render
 
 PANEL_WIDTH = 260
 MAX_VISIBLE_AGENTS = 4
-
-# Minimum des infos dont le hud a besoin sur les ia, à changer une fois que
-# l'on aura vraiment notre ia
-@dataclass
-class AgentInfo:
-    id: int
-    length: int = 1
-    play_time_ticks: int = 0
 
 class Hud:
     def __init__(self, render: Render, panel_x: int, panel_height: int):
@@ -56,7 +47,7 @@ class Hud:
                 return button.action
         return None
 
-    def render_hud(self, speed_multiplier: float, elapsed_ticks: int, tick_rate: int, agents: list[AgentInfo],
+    def render_hud(self, speed_multiplier: float, elapsed_ticks: int, tick_rate: int, agents: list,
                food_density: float, paused: bool, fullscreen: bool, mouse_pos):
 
         self.render.draw_line((self.panel_x, 0), (self.panel_x, self.panel_height), WHITE)
@@ -106,7 +97,7 @@ class Hud:
         for rank, agent in enumerate(top, start=1):
             agent_seconds = int(agent.play_time_ticks / tick_rate) if tick_rate else 0
             line = f"{rank}. AI {agent.id}  -  {agent.length}  ({agent_seconds}s)"
-            self.render.draw_text(line, self.panel_x + 20, y, self.font_small, LIGHT_GREEN)
+            self.render.draw_text(line, self.panel_x + 20, y, self.font_small, agent.color)
             y += 20
  
         self.add_ai_btn.draw(self.render, self.font, BACKGROUND, mouse_pos)
