@@ -35,7 +35,7 @@ class Menu:
         self.font_small = 22
 
         self.num_agents = MIN_AGENTS
-        self.grid_preset_index = 0
+        self.grid_preset_index = 1
 
         self.state = "main"
         self.food_density = 0.05
