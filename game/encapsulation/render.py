@@ -18,6 +18,12 @@ class Render:
     def draw_grid_cell(self, x: int, y: int, color: tuple[int, int, int], size: int, border_radius: int = 0):
         pygame.draw.rect(self.screen, color, (x * size, y * size, size, size), border_radius)
 
+    def draw_vision(self, x: int, y: int, color: tuple[int, int, int], alpha: int = 50):
+        """Draw vision field"""
+        s = pygame.Surface((self.tile_size, self.tile_size), pygame.SRCALPHA)
+        s.fill((*color, alpha))
+        self.screen.blit(s, (x * self.tile_size, y * self.tile_size))
+
     def draw_rect(self, rect: Rect, color: tuple[int, int, int], width: int = 0, border_radius: int = 0):
         pygame.draw.rect(self.screen, color, (rect.x, rect.y, rect.width, rect.height), width, border_radius)
 

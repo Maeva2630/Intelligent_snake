@@ -146,7 +146,7 @@ class Game:
 
         for agent in self.agents:
             other_agents = [a for a in self.agents if a is not agent]
-            world_view = WorldView(grid=self.grid, other_agents=other_agents, tick=self.elapsed_ticks)
+            world_view = WorldView(grid=self.grid, other_agents=other_agents, foods=self.food_manager.foods, tick=self.elapsed_ticks)
             agent.tick(world_view)
         resolve_collisions(self.agents)
 
@@ -161,6 +161,12 @@ class Game:
         bg_rect = Rect(0, 0, self.window.get_width(), self.window.get_height())
         self.render.draw_rect(bg_rect, BACKGROUND)
         self.render.draw_grid(self.grid)
+
+        for agent in self.agents:
+            if not agent.alive:
+                continue
+            for x, y in agent.last_visible_cells.keys():
+                self.render.draw_vision(x, y, agent.color, alpha=20)
 
         for agent in self.agents:
             if not agent.alive:
