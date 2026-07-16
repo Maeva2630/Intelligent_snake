@@ -80,5 +80,3 @@ def resolve_collisions(agents: list[Agent]) -> None:
             if agent.snake.head in other.snake.body:
                 agent.snake.die()
                 break
-
-
