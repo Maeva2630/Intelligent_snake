@@ -13,6 +13,7 @@ from game.render.hud import Hud, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
 
 from game.entity.food import FoodManager
+from game.render.screen import Screen
 
 MIN_WINDOW_HEIGHT = 480
 MIN_SPEED_MULTIPLIER = 0.25
@@ -43,6 +44,7 @@ class Game:
         self.paused = False
         self.game_over = False
         self.winner = None
+        self.screen_renderer = Screen(self.render, self)
  
         self._next_screen = "quit"
  
@@ -194,19 +196,8 @@ class Game:
         self.food_manager.draw_foods()
 
         if self.game_over:
-            grid_center_x = (self.grid.width * self.tile_size) // 2
-            grid_center_y = (self.grid.height * self.tile_size) // 2
-            # Draw semi-transparent grid overlay
-            self.render.draw_dim_overlay((0, 0, 0), alpha=150)
-            
-            if self.winner is not None:
-                self.render.draw_text("VICTORY", grid_center_x, grid_center_y - 30, 60, self.winner.color, align="center")
-                self.render.draw_text(f"AI {self.winner.id} Wins!", grid_center_x, grid_center_y + 20, 24, self.winner.color, align="center")
-            else:
-                self.render.draw_text("GAME OVER", grid_center_x, grid_center_y - 30, 60, (230, 50, 50), align="center")
-                self.render.draw_text("No Winner", grid_center_x, grid_center_y + 20, 24, (255, 255, 255), align="center")
-            
-            self.render.draw_text("Press ESC or click 'Back to menu'", grid_center_x, grid_center_y + 60, 20, (180, 180, 180), align="center")
+            self.screen_renderer._render_end_screen()
+
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
             self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
