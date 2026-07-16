@@ -90,14 +90,14 @@ class Hud:
  
         # Top 4
         y = 250
-        self.render.draw_text("Top 4  -  length  (alive time)", self.panel_x + 20, y, self.font, ACCENT)
+        self.render.draw_text("Top 4  -  length (time) -> status", self.panel_x + 20, y, self.font, ACCENT)
         y += 26
  
         top = sorted(agents, key=lambda a: a.length, reverse=True)[:MAX_VISIBLE_AGENTS]
         for rank, agent in enumerate(top, start=1):
             agent_seconds = int(agent.play_time_ticks / tick_rate) if tick_rate else 0
             alive = "Alive" if agent.alive else "Dead"
-            line = f"{rank}. AI {agent.id}  -  {agent.length}  ({agent_seconds}s) -> {alive}"
+            line = f"{rank}. AI {agent.id}  -  {agent.length} ({agent_seconds}s) -> {alive}"
             self.render.draw_text(line, self.panel_x + 20, y, self.font_small, agent.color)
             y += 20
  
