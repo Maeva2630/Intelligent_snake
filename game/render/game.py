@@ -41,6 +41,8 @@ class Game:
 
         self.running = True
         self.paused = False
+        self.game_over = False
+        self.winner = None
  
         self._next_screen = "quit"
  
@@ -142,9 +144,20 @@ class Game:
         )
 
     def _update(self):
+        if self.game_over:
+            return
+
+        alive_agents = [agent for agent in self.agents if agent.alive]
+        if len(alive_agents) <= 1:
+            self.game_over = True
+            self.winner = alive_agents[0] if len(alive_agents) == 1 else None
+            return
+
         self.elapsed_ticks += 1
 
         for agent in self.agents:
+            if not agent.alive:
+                continue
             other_agents = [a for a in self.agents if a is not agent]
             world_view = WorldView(grid=self.grid, other_agents=other_agents, foods=self.food_manager.foods, tick=self.elapsed_ticks)
             agent.tick(world_view)
@@ -179,6 +192,21 @@ class Game:
             self.render.draw_snake(agent.snake, body_color=agent.color)
 
         self.food_manager.draw_foods()
+
+        if self.game_over:
+            grid_center_x = (self.grid.width * self.tile_size) // 2
+            grid_center_y = (self.grid.height * self.tile_size) // 2
+            # Draw semi-transparent grid overlay
+            self.render.draw_dim_overlay((0, 0, 0), alpha=150)
+            
+            if self.winner is not None:
+                self.render.draw_text("VICTORY", grid_center_x, grid_center_y - 30, 60, self.winner.color, align="center")
+                self.render.draw_text(f"AI {self.winner.id} Wins!", grid_center_x, grid_center_y + 20, 24, self.winner.color, align="center")
+            else:
+                self.render.draw_text("GAME OVER", grid_center_x, grid_center_y - 30, 60, (230, 50, 50), align="center")
+                self.render.draw_text("No Winner", grid_center_x, grid_center_y + 20, 24, (255, 255, 255), align="center")
+            
+            self.render.draw_text("Press ESC or click 'Back to menu'", grid_center_x, grid_center_y + 60, 20, (180, 180, 180), align="center")
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
             self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,

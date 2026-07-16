@@ -24,6 +24,12 @@ class Render:
         s.fill((*color, alpha))
         self.screen.blit(s, (x * self.tile_size, y * self.tile_size))
 
+    def draw_dim_overlay(self, color: tuple[int, int, int], alpha: int = 150):
+        """Draw a semi-transparent screen overlay"""
+        s = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
+        s.fill((*color, alpha))
+        self.screen.blit(s, (0, 0))
+
     def draw_rect(self, rect: Rect, color: tuple[int, int, int], width: int = 0, border_radius: int = 0):
         pygame.draw.rect(self.screen, color, (rect.x, rect.y, rect.width, rect.height), width, border_radius)
 
