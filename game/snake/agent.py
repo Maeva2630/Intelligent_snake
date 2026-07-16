@@ -44,7 +44,7 @@ class Agent:
         fx, fy = self.snake.direction.delta()
         rx, ry = self.snake.direction.turn_right().delta()
 
-        visible_cells[(head_x, head_y)] = "empty"
+        visible_cells[(head_x, head_y)] = "self"
 
         for i in range(1, self.vision_radius + 1):
             lateral_span = i - 1
@@ -55,8 +55,15 @@ class Agent:
                 
                 if (x, y) in food_positions:
                     visible_cells[(x, y)] = "food"
+                elif any(other.alive and other.snake.occupies((x, y)) for other in world_view.other_agents):
+                    visible_cells[(x, y)] = "agent"
+                elif self.snake.occupies((x, y)):
+                    visible_cells[(x, y)] = "self"
                 else:
                     visible_cells[(x, y)] = "empty"
+        # debug
+        with open("visible_cells.txt", "a") as f:
+            f.write(f"{visible_cells}\n")
         return visible_cells
 
 def resolve_collisions(agents: list[Agent]) -> None:
