@@ -61,9 +61,6 @@ class Agent:
                     visible_cells[(x, y)] = "self"
                 else:
                     visible_cells[(x, y)] = "empty"
-        # debug
-        with open("visible_cells.txt", "a") as f:
-            f.write(f"{visible_cells}\n")
         return visible_cells
 
 def resolve_collisions(agents: list[Agent]) -> None:
