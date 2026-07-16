@@ -23,6 +23,7 @@ class AgentMemory:
         for pos, entry in self._map.items():
             if entry.resource_type == "food":
                 k_resources.append(pos)
+        return k_resources
 
     def closest_known_resource(self, from_position: tuple[int, int], grid) -> tuple[int, int] | None:
         resources = self.known_resources()

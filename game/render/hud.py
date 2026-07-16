@@ -96,7 +96,8 @@ class Hud:
         top = sorted(agents, key=lambda a: a.length, reverse=True)[:MAX_VISIBLE_AGENTS]
         for rank, agent in enumerate(top, start=1):
             agent_seconds = int(agent.play_time_ticks / tick_rate) if tick_rate else 0
-            line = f"{rank}. AI {agent.id}  -  {agent.length}  ({agent_seconds}s)"
+            alive = "Alive" if agent.alive else "Dead"
+            line = f"{rank}. AI {agent.id}  -  {agent.length}  ({agent_seconds}s) -> {alive}"
             self.render.draw_text(line, self.panel_x + 20, y, self.font_small, agent.color)
             y += 20
  

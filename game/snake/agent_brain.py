@@ -1,5 +1,6 @@
 """ Agent Brain: FSM, decision logic  """
 
+from game.snake.world_view import WorldView
 from enum import Enum
 
 LOW_ERNGY = 30
@@ -42,24 +43,26 @@ class AgentBrain:
             self._avoid_immediate_collisiont(agent, world_view)
             return
         
-        self._turn_towards(agent, target, world_view.grid)
+        self._turn_towards(agent, target, world_view)
 
-    def _turn_towards(self, agent, target: tuple[int, int], grid) -> None:
+    def _turn_towards(self, agent, target: tuple[int, int], world_view: WorldView) -> None:
         best_action = None
         best_distance = None
 
         for action, direction in self._reachable_directions(agent.snake.direction):
-            dx, dy = direction.delta()
-            next_pos = grid.handle_toric(agent.snake.head[0] + dx, agent.snake.head[1] + dy)
-            if agent.snake.occupies(next_pos):
+            next_pos = self._next_position(agent, direction, world_view.grid)
+            if self._is_blocked(agent, next_pos, world_view):
                 continue
 
-            distance = grid.toric_distance(next_pos, target)
+            distance = world_view.grid.toric_distance(next_pos, target)
             if best_distance is None or distance < best_distance:
                 best_distance = distance
                 best_action = action
 
-        self._apply_action(agent, best_action)
+        if best_action is not None:
+            self._apply_action(agent, best_action)
+        else:
+            self._avoid_immediate_collisiont(agent, world_view)
 
     def _avoid_immediate_collisiont(self, agent, world_view) -> None:
         for action, direction in self._reachable_directions(agent.snake.direction):
