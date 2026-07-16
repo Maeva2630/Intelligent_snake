@@ -27,7 +27,7 @@ class AgentBrain:
 
     def _update_state(self, agent, world_view) -> None:
         if agent.memory.known_resources():
-            self.current_state = AgentState.TARGET_ACQUIRED
+            self.current_state = AgentState.TARGET
             return
 
         straight_pos = self._next_position(agent, agent.snake.direction, world_view.grid)
