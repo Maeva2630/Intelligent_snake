@@ -14,6 +14,7 @@ from game.render.hud import Hud, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
 
 from game.entity.food import FoodManager
+from game.render.screen import Screen
 
 MIN_WINDOW_HEIGHT = 480
 MIN_SPEED_MULTIPLIER = 0.25
@@ -43,6 +44,9 @@ class Game:
 
         self.running = True
         self.paused = False
+        self.game_over = False
+        self.winner = None
+        self.screen_renderer = Screen(self.render, self)
  
         self._next_screen = "quit"
  
@@ -144,12 +148,28 @@ class Game:
         )
 
     def _update(self):
+        if self.game_over:
+            return
+
+        alive_agents = [agent for agent in self.agents if agent.alive]
+        if len(alive_agents) <= 1:
+            self.game_over = True
+            self.winner = alive_agents[0] if len(alive_agents) == 1 else None
+            return
+
         self.elapsed_ticks += 1
 
         for agent in self.agents:
+            if not agent.alive:
+                continue
             other_agents = [a for a in self.agents if a is not agent]
-            world_view = WorldView(grid=self.grid, other_agents=other_agents, tick=self.elapsed_ticks)
+            world_view = WorldView(grid=self.grid, other_agents=other_agents, foods=self.food_manager.foods, tick=self.elapsed_ticks)
             agent.tick(world_view)
+
+            head_x, head_y = agent.snake.head
+            if self.food_manager.eat_food(head_x, head_y):
+                agent.snake.grow()
+                agent.memory.forget((head_x, head_y))
         resolve_collisions(self.agents)
 
         for agent in self.agents:
@@ -167,9 +187,23 @@ class Game:
         for agent in self.agents:
             if not agent.alive:
                 continue
+            for x, y in agent.last_visible_cells.keys():
+                self.render.draw_vision(x, y, agent.color, alpha=20)
+
+        for agent in self.agents:
+            if not agent.alive:
+                continue
+
+            for x, y in agent.last_visible_cells.keys():
+                self.render.draw_vision(x, y, agent.color, alpha=20)
+
             self.snake_sprites.draw_snake(self.render, self.grid, agent.snake, color=agent.color)
 
         self.food_manager.draw_foods()
+
+        if self.game_over:
+            self.screen_renderer._render_end_screen()
+
         self.hud.render_hud(
             self.speed_multiplier, self.elapsed_ticks, self.tick_rate,
             self.agents, self.food_density, self.paused, self.window.fullscreen, mouse_pos,
