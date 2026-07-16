@@ -4,7 +4,8 @@ from game.encapsulation.window import Window
 from game.encapsulation.render import Render
 from game.encapsulation.event import EventType, Key
 from game.encapsulation.rect import Rect
-from game.render.constants import BACKGROUND, SNAKE_COLORS, ACCENT
+from game.render.constants import BACKGROUND, SNAKE_COLORS
+from game.render.snake_sprites import SnakeSprites
 from game.snake.world_view import WorldView
 from game.snake.direction import Direction
 from game.snake.agent import Agent, resolve_collisions
@@ -38,6 +39,7 @@ class Game:
         self.window.resize(window_width, window_height, tile_size)
  
         self.render = Render(self.window.screen, tile_size)
+        self.snake_sprites = SnakeSprites(tile_size)
         self.hud = Hud(self.render, grid_pixel_width, self.window.get_height())
 
         self.running = True
@@ -191,7 +193,11 @@ class Game:
         for agent in self.agents:
             if not agent.alive:
                 continue
-            self.render.draw_snake(agent.snake, body_color=agent.color)
+
+            for x, y in agent.last_visible_cells.keys():
+                self.render.draw_vision(x, y, agent.color, alpha=20)
+
+            self.snake_sprites.draw_snake(self.render, self.grid, agent.snake, color=agent.color)
 
         self.food_manager.draw_foods()
 
