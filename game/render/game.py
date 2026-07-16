@@ -148,6 +148,11 @@ class Game:
             other_agents = [a for a in self.agents if a is not agent]
             world_view = WorldView(grid=self.grid, other_agents=other_agents, foods=self.food_manager.foods, tick=self.elapsed_ticks)
             agent.tick(world_view)
+
+            head_x, head_y = agent.snake.head
+            if self.food_manager.eat_food(head_x, head_y):
+                agent.snake.grow()
+                agent.memory.forget((head_x, head_y))
         resolve_collisions(self.agents)
 
         for agent in self.agents:
