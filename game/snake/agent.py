@@ -68,7 +68,7 @@ def resolve_collisions(agents: list[Agent]) -> None:
 
     for agent in alive_agents:
         if agent.snake.collides_with_self():
-            agent.snake.die()
+            agent.snake.truncate_at_self_collision()
             continue
 
         for other in alive_agents:

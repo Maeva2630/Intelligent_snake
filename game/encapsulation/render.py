@@ -60,14 +60,6 @@ class Render:
                     1
                 )
 
-    def draw_snake(self, snake, body_color, head_color = None, border_radius: int = 4):
-        """Draw a snake's body cell by cell"""
-        head_color = head_color or body_color
-
-        for index, segment in enumerate(snake.body):
-            color = head_color if index == 0 else body_color
-            self.draw_grid_cell(segment[0], segment[1], color, self.tile_size, border_radius=border_radius)
-
     def _get_font(self, size: int):
         if size not in self._fonts:
             self._fonts[size] = pygame.font.SysFont(None, size)

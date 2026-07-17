@@ -2,19 +2,20 @@
 
 from game.encapsulation.window import Window
 from game.encapsulation.render import Render
+from game.render.snake_sprites import SnakeSprites
 from game.encapsulation.event import EventType, Key
 from game.encapsulation.rect import Rect
-from game.render.constants import BACKGROUND, SNAKE_COLORS
-from game.render.snake_sprites import SnakeSprites
+from game.snake.agent_brain import AgentState
 from game.snake.world_view import WorldView
+from game.render.constants import BACKGROUND, SNAKE_COLORS
 from game.snake.direction import Direction
+from game.render.screen import Screen
+from game.entity.food import FoodManager
 from game.snake.agent import Agent, resolve_collisions
 from game.render.menu import MIN_FOOD_DENSITY, MAX_FOOD_DENSITY, FOOD_DENSITY_STEP
 from game.render.hud import Hud, PANEL_WIDTH, MAX_VISIBLE_AGENTS
 from game.grid.grid import Grid
 
-from game.entity.food import FoodManager
-from game.render.screen import Screen
 
 MIN_WINDOW_HEIGHT = 480
 MIN_SPEED_MULTIPLIER = 0.25
@@ -190,6 +191,8 @@ class Game:
             for x, y in agent.last_visible_cells.keys():
                 self.render.draw_vision(x, y, agent.color, alpha=20)
 
+        self.food_manager.draw_foods()
+
         for agent in self.agents:
             if not agent.alive:
                 continue
@@ -197,9 +200,8 @@ class Game:
             for x, y in agent.last_visible_cells.keys():
                 self.render.draw_vision(x, y, agent.color, alpha=20)
 
-            self.snake_sprites.draw_snake(self.render, self.grid, agent.snake, color=agent.color)
-
-        self.food_manager.draw_foods()
+            hunting = True if agent.brain.current_state == AgentState.HUNTING else False
+            self.snake_sprites.draw_snake(self.render, self.grid, agent.snake, agent.color, hunting)
 
         if self.game_over:
             self.screen_renderer._render_end_screen()

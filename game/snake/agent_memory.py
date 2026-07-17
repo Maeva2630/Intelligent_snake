@@ -35,3 +35,5 @@ class AgentMemory:
          for position, content in visible_cells.items():
             if content == "food":
                 self.remember(position, "food", tick)
+            elif position in self._map and self._map[position].resource_type == "food":
+                self.forget(position)
